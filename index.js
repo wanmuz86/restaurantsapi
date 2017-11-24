@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 
 //the default port is 8080 unless u specified it
-var port = process.env.port || 8080;
+var port = process.env.PORT || 8080;
 
 //Create the route
 var router = express.Router();
