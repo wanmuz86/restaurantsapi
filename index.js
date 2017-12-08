@@ -1,15 +1,18 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var Restaurant = require('./restaurant.js')
+var User = require('./user.js')
 var app = express();
+var passport = require('passport')
 
+var authController = require('./auth.js');
 var mongoose = require('mongoose');
 
 mongoose.connect('mongodb://wanmuz:abcd1234@ds115166.mlab.com:15166/placevisit');
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
-
+app.use(passport.initialize());
 //the default port is 8080 unless u specified it
 var port = process.env.PORT || 8080;
 
@@ -23,7 +26,7 @@ router.get('/', function(req, res){
 
 
 router.route('/restaurants')
-.post(function(req,res){
+.post(authController.isAuthenticated,function(req,res){
 	var restaurant = new Restaurant();
 	restaurant.name = req.body.name;
 	restaurant.address = req.body.address;
@@ -56,7 +59,39 @@ router.route('/restaurants')
 	})
 })
 
+router.route('/login').post(function(req,res){
+	User.findOne({ 'username': req.body.username },function (err, user) {
+  if (err) {
+  	return res.send(err)
+  }
+  else{
+  	if (req.body.password == user.password){
+  		return res.json({message:"ok"})
+  	}
+  	else {
+  		return res.json({message:"password wrong"})
+  	}
+  }
+})
 
+})
+
+router.route('/register').post(function(req,res){
+	var user = new User();
+	user.username = req.body.username
+	user.password = req.body.password
+
+	user.save(function(err){
+		if (err){
+			res.send(err)
+		}
+		else {
+			res.json({message:"User has been created"})
+		}
+		
+	})
+
+})
 app.use('/api',router);
 
 //listen for an event on port specified
